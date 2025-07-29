@@ -3,13 +3,14 @@ extends CharacterBody2D
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 
 const GRAVITY = 1000
-const SPEED = 300
-const JUMP = 300
-const JUMP_HORIZONTAL = 100
+
+@export var speed : int = 300
+@export var jump : int = 300
+@export var jump_horizontal : int = 300
 
 enum State { Idle, Run, Jump }
 
-var current_state
+var current_state : State
 var was_on_floor = true
 
 func _ready():
@@ -20,7 +21,7 @@ func _process(delta):
 	pass
 
 
-func _physics_process(delta):
+func _physics_process(delta : float):
 	player_falling(delta)
 	player_jump(delta)
 	
@@ -42,21 +43,21 @@ func _physics_process(delta):
 	player_animations()
 	
 	
-func player_falling(delta):
+func player_falling(delta : float):
 	if !is_on_floor():
 		velocity.y += GRAVITY * delta
 
 
-func player_idle(delta):
+func player_idle(delta : float):
 	if is_on_floor() and current_state != State.Jump:
 		current_state = State.Idle
 		
 		
-func player_run(delta):
-	var direction = Input.get_axis("move_left", "move_right")
+func player_run(delta : float):
+	var direction = input_movement()
 
 	if direction:
-		velocity.x = direction * SPEED
+		velocity.x = direction * speed
 		# Flip the sprite if moving left
 		animated_sprite_2d.flip_h = direction < 0
 		current_state = State.Run
@@ -64,14 +65,14 @@ func player_run(delta):
 		velocity.x = 0  # stop sliding
 		current_state = State.Idle
 		
-func player_jump(delta):
+func player_jump(delta : float):
 	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = -JUMP
+		velocity.y = -jump
 		current_state = State.Jump
 
 	if !is_on_floor() and current_state == State.Jump:
-		var direction = Input.get_axis("move_left", "move_right")
-		velocity.x = direction * SPEED
+		var direction = input_movement()
+		velocity.x = direction * jump_horizontal
 
 
 func player_animations():
@@ -81,3 +82,8 @@ func player_animations():
 		animated_sprite_2d.play("run")
 	elif current_state == State.Jump:
 		animated_sprite_2d.play("jump")
+		
+		
+func input_movement():
+	var direction : float = Input.get_axis("move_left", "move_right")
+	return direction
