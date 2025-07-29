@@ -7,6 +7,7 @@ extends CharacterBody2D
 
 const GRAVITY = 1000
 @export var speed : int = 25
+@export var wait_time : int = 3
 
 enum State { Idle, Walk, Falling }
 
@@ -37,6 +38,7 @@ func _ready():
 		point_positions.append(point.global_position)
 	current_point = point_positions[current_point_position]
 	
+	timer.wait_time = wait_time
 	current_state = State.Idle
 	
 	can_walk = true
