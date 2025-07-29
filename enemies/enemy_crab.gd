@@ -3,6 +3,7 @@ extends CharacterBody2D
 @export var patrol_points : Node
 
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@onready var timer: Timer = $Timer
 
 const GRAVITY = 1000
 @export var speed : int = 25
@@ -16,6 +17,7 @@ var number_of_points : int
 var point_positions : Array[Vector2]
 var current_point : Vector2
 var current_point_position : int #set to 0 by default
+var can_walk : bool
 
 
 func _ready():
@@ -36,6 +38,8 @@ func _ready():
 	current_point = point_positions[current_point_position]
 	
 	current_state = State.Idle
+	
+	can_walk = true
 
 func _physics_process(delta: float):
 	crab_falling(delta)
@@ -52,7 +56,10 @@ func crab_state_handler():
 		current_state = State.Walk
 
 	if current_state == State.Walk and is_on_floor():
-		crab_walk()
+		if can_walk:
+			crab_walk()
+		else:
+			crab_idle()  # Call idle when waiting
 
 	was_on_floor = is_on_floor()
 
@@ -63,14 +70,16 @@ func crab_falling(delta : float):
 
 
 func crab_walk():
-	# Move left continuously
+	current_point = point_positions[current_point_position]  # Update point first
+
 	if abs(position.x - current_point.x) > 0.5:
 		velocity.x = direction.x * speed
 	else:
 		current_point_position = current_point_position ^ 1
-		
-	current_point = point_positions[current_point_position]
-	
+		can_walk = false
+		velocity.x = 0  # Immediately stop horizontal movement
+		timer.start()
+
 	if current_point.x > position.x:
 		direction = Vector2.RIGHT
 	else:
@@ -78,7 +87,10 @@ func crab_walk():
 	
 	animated_sprite_2d.flip_h = (direction == Vector2.RIGHT)
 
-
+func crab_idle():
+	velocity.x = move_toward(velocity.x, 0, speed * get_physics_process_delta_time())
+	current_state = State.Idle
+	
 func crab_animations():
 	match current_state:
 		State.Idle:
@@ -87,3 +99,7 @@ func crab_animations():
 			animated_sprite_2d.play("walk")
 		State.Falling:
 			animated_sprite_2d.play("fall")  # You need a "fall" animation in your sprite
+
+func _on_timer_timeout() -> void:
+	can_walk = true
+	current_state = State.Walk

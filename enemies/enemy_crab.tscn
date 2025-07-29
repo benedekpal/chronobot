@@ -116,3 +116,9 @@ script = SubResource("GDScript_pm84v")
 position = Vector2(0, -14)
 shape = SubResource("CapsuleShape2D_i68te")
 debug_color = Color(0.873134, 0.302443, 0.447281, 0.42)
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 2.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
