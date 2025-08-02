@@ -10,7 +10,7 @@ const GRAVITY = 1000
 @export var speed: int = 300
 @export var jump: int = 300
 @export var jump_horizontal: int = 300
-@export var shoot_cooldown_time: float = 0.2  # seconds between shots
+@export var shoot_cooldown_time: float = 0.2
 
 enum State { Idle, Run, Jump, Stand, Up, Duck }
 
@@ -25,7 +25,6 @@ var facing_left = false
 var shoot_cooldown = 0.0
 var is_shooting = false
 
-# Coyote time and jump buffer variables
 var coyote_time = 0.1
 var coyote_timer = 0.0
 
@@ -37,46 +36,29 @@ func _ready():
 	change_state(State.Idle)
 
 func _physics_process(delta: float):
-	shoot_cooldown = max(shoot_cooldown - delta, 0)
-	
 	var direction = input_movement()
 	var on_floor = is_on_floor()
-	
+
+	update_facing_input()
+
+	# Cooldowns
+	shoot_cooldown = max(shoot_cooldown - delta, 0)
 	is_shooting = Input.is_action_pressed("shoot")
-	
-	# Update coyote timer
+
+	# Timers
 	if on_floor:
 		coyote_timer = coyote_time
 	else:
 		coyote_timer -= delta
 
-	# Update jump buffer timer
 	if Input.is_action_just_pressed("jump"):
 		jump_buffer_timer = jump_buffer_time
 	else:
 		jump_buffer_timer = max(jump_buffer_timer - delta, 0)
 
-	# Jump logic using coyote time and jump buffer
-	if jump_buffer_timer > 0 and coyote_timer > 0:
-		change_state(State.Jump)
-		jump_buffer_timer = 0
-		coyote_timer = 0
-	elif !on_floor:
-		change_state(State.Jump)
-	elif Input.is_action_pressed("look_up"):
-		change_state(State.Up)
-	elif Input.is_action_pressed("duck"):
-		change_state(State.Duck)
-	elif direction != 0:
-		change_state(State.Run)
-	else:
-		change_state(State.Idle)
+	process_state_transitions(direction, on_floor)
 
-	# Shooting overrides state only if idle
-	if is_shooting and current_state == State.Idle:
-		change_state(State.Stand)
-
-	# Per-state movement behavior
+	# State behavior
 	match current_state:
 		State.Run:
 			player_run(direction, delta)
@@ -85,26 +67,75 @@ func _physics_process(delta: float):
 		State.Jump:
 			player_jump(direction, delta)
 		State.Up:
-			player_up(direction)  # pass direction for flipping
+			player_up()
 		State.Duck:
-			player_duck(direction)  # pass direction for flipping
+			player_duck()
 		State.Stand:
-			player_idle()  # no movement while shooting standing still
+			player_idle()
 
+	# Universal movement & animation
 	player_falling(delta)
 	move_and_slide()
 	player_animations()
-	
-	was_on_floor = on_floor
-	
+
+	# Shooting
 	if is_shooting and shoot_cooldown == 0:
 		shoot()
-	
-	# Exit Stand when shooting stops
+
 	if current_state == State.Stand and !is_shooting:
 		change_state(State.Idle)
 
+	was_on_floor = on_floor
+
+	# Debug
 	print("State: ", State.keys()[current_state])
+
+# --------------------------------------------------
+# STATE MACHINE
+# --------------------------------------------------
+
+func process_state_transitions(direction: int, on_floor: bool):
+	# Jump buffer + coyote time
+	if jump_buffer_timer > 0 and coyote_timer > 0:
+		jump_buffer_timer = 0
+		coyote_timer = 0
+		change_state(State.Jump)
+		return
+
+	# Falling
+	if !on_floor and current_state != State.Jump:
+		change_state(State.Jump)
+		return
+
+	# Maintain look_up or duck states
+	if current_state == State.Up and Input.is_action_pressed("look_up"):
+		return
+	if current_state == State.Duck and Input.is_action_pressed("duck"):
+		return
+
+	# Idle shooting becomes stand
+	if is_shooting and current_state == State.Idle:
+		change_state(State.Stand)
+		return
+
+	# Duck or Look Up if on floor
+	if on_floor and direction == 0:
+		if Input.is_action_pressed("duck"):
+			change_state(State.Duck)
+			return
+		elif Input.is_action_pressed("look_up"):
+			change_state(State.Up)
+			return
+
+	# Run
+	if direction != 0 and on_floor:
+		change_state(State.Run)
+		return
+
+	# Default Idle
+	if on_floor:
+		change_state(State.Idle)
+		
 
 func change_state(new_state: State):
 	if new_state == current_state:
@@ -121,12 +152,34 @@ func enter_state(state: State):
 func exit_state(state: State):
 	pass
 
+# --------------------------------------------------
+# PLAYER LOGIC
+# --------------------------------------------------
+
+func input_movement() -> int:
+	return Input.get_axis("move_left", "move_right")
+
+func update_facing_input():
+	if Input.is_action_pressed("move_left"):
+		facing_left = true
+	elif Input.is_action_pressed("move_right"):
+		facing_left = false
+
+	animated_sprite_2d.flip_h = facing_left
+	flip_muzzle_markers(facing_left)
+
+func flip_muzzle_markers(flip_left: bool):
+	var flip_scale = -1 if flip_left else 1
+	muzzle.scale.x = flip_scale
+	muzzle_up.scale.x = flip_scale
+	muzzle_duck.scale.x = flip_scale
+
 func player_falling(delta: float):
 	if !is_on_floor():
 		velocity.y += GRAVITY * delta
 
 func player_jump(direction: int, delta: float):
-	if !is_on_floor() and current_state == State.Jump:
+	if !is_on_floor():
 		velocity.x = direction * jump_horizontal
 
 func player_idle():
@@ -134,32 +187,28 @@ func player_idle():
 
 func player_run(direction: int, delta: float):
 	velocity.x = direction * speed
-	if direction != 0:
-		facing_left = direction < 0
-	animated_sprite_2d.flip_h = facing_left
 
-func player_up(direction: int):
+func player_up():
 	velocity.x = 0
-	if direction != 0:
-		facing_left = direction < 0
-	animated_sprite_2d.flip_h = facing_left
 
-func player_duck(direction: int):
+func player_duck():
 	velocity.x = 0
-	if direction != 0:
-		facing_left = direction < 0
-	animated_sprite_2d.flip_h = facing_left
+
+# --------------------------------------------------
+# ANIMATIONS
+# --------------------------------------------------
 
 func player_animations():
 	if is_shooting:
-		if current_state == State.Run:
-			animated_sprite_2d.play("run_shoot")   # shooting while running animation
-		elif current_state == State.Stand:
-			animated_sprite_2d.play("stand")   # shooting while standing still animation
-		elif current_state == State.Up:
-			animated_sprite_2d.play("look_up")
-		elif current_state == State.Duck:
-			animated_sprite_2d.play("duck")
+		match current_state:
+			State.Run:
+				animated_sprite_2d.play("run_shoot")
+			State.Idle, State.Stand:
+				animated_sprite_2d.play("stand")
+			State.Up:
+				animated_sprite_2d.play("look_up")
+			State.Duck:
+				animated_sprite_2d.play("duck")
 	else:
 		match current_state:
 			State.Idle:
@@ -175,15 +224,13 @@ func player_animations():
 			State.Duck:
 				animated_sprite_2d.play("duck")
 
-func input_movement():
-	return Input.get_axis("move_left", "move_right")
+# --------------------------------------------------
+# SHOOTING
+# --------------------------------------------------
 
 func shoot():
-	# Select muzzle based on current state
 	return
 	match current_state:
-		State.Jump:
-			active_muzzle = muzzle
 		State.Up:
 			active_muzzle = muzzle_up
 		State.Duck:
@@ -191,16 +238,9 @@ func shoot():
 		_:
 			active_muzzle = muzzle
 
-	# Spawn bullet instance
 	var bullet_instance = bullet.instantiate()
 	get_parent().add_child(bullet_instance)
 	bullet_instance.global_position = active_muzzle.global_position
-	
-	# Set bullet direction — assuming your bullet script has a 'direction' variable
-	if facing_left:
-		bullet_instance.direction = -1
-	else:
-		bullet_instance.direction = 1
+	bullet_instance.direction = -1 if facing_left else 1
 
-	# Reset shoot cooldown
 	shoot_cooldown = shoot_cooldown_time
