@@ -25,6 +25,13 @@ var facing_left = false
 var shoot_cooldown = 0.0
 var is_shooting = false
 
+# Coyote time and jump buffer variables
+var coyote_time = 0.1
+var coyote_timer = 0.0
+
+var jump_buffer_time = 0.1
+var jump_buffer_timer = 0.0
+
 func _ready():
 	active_muzzle = muzzle
 	change_state(State.Idle)
@@ -37,9 +44,23 @@ func _physics_process(delta: float):
 	
 	is_shooting = Input.is_action_pressed("shoot")
 	
-	# === State transitions (shooting handled separately) ===
-	if Input.is_action_just_pressed("jump") and on_floor:
+	# Update coyote timer
+	if on_floor:
+		coyote_timer = coyote_time
+	else:
+		coyote_timer -= delta
+
+	# Update jump buffer timer
+	if Input.is_action_just_pressed("jump"):
+		jump_buffer_timer = jump_buffer_time
+	else:
+		jump_buffer_timer = max(jump_buffer_timer - delta, 0)
+
+	# Jump logic using coyote time and jump buffer
+	if jump_buffer_timer > 0 and coyote_timer > 0:
 		change_state(State.Jump)
+		jump_buffer_timer = 0
+		coyote_timer = 0
 	elif !on_floor:
 		change_state(State.Jump)
 	elif Input.is_action_pressed("look_up"):
@@ -51,11 +72,11 @@ func _physics_process(delta: float):
 	else:
 		change_state(State.Idle)
 
-	# === Shooting overrides state only if idle ===
+	# Shooting overrides state only if idle
 	if is_shooting and current_state == State.Idle:
 		change_state(State.Stand)
 
-	# === Per-state movement behavior ===
+	# Per-state movement behavior
 	match current_state:
 		State.Run:
 			player_run(direction, delta)
@@ -64,9 +85,9 @@ func _physics_process(delta: float):
 		State.Jump:
 			player_jump(direction, delta)
 		State.Up:
-			player_up(direction)  # Pass direction here for flipping
+			player_up(direction)  # pass direction for flipping
 		State.Duck:
-			player_duck(direction)  # Pass direction here for flipping
+			player_duck(direction)  # pass direction for flipping
 		State.Stand:
 			player_idle()  # no movement while shooting standing still
 
@@ -154,11 +175,12 @@ func player_animations():
 			State.Duck:
 				animated_sprite_2d.play("duck")
 
-func input_movement() -> int:
+func input_movement():
 	return Input.get_axis("move_left", "move_right")
 
 func shoot():
 	# Select muzzle based on current state
+	return
 	match current_state:
 		State.Jump:
 			active_muzzle = muzzle
