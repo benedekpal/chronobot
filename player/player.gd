@@ -4,6 +4,11 @@ extends CharacterBody2D
 @onready var muzzle: Marker2D = $Muzzle
 @onready var muzzle_up: Marker2D = $MuzzleUp
 @onready var muzzle_duck: Marker2D = $MuzzleDuck
+@onready var muzzle_cling: Marker2D = $MuzzleCling
+
+@onready var wall_check: ShapeCast2D = $WallCheck
+@onready var floor_check: RayCast2D = $FloorCheck
+
 
 const GRAVITY = 1000
 
@@ -12,7 +17,7 @@ const GRAVITY = 1000
 @export var jump_horizontal: int = 300
 @export var shoot_cooldown_time: float = 0.2
 
-enum State { Idle, Run, Jump, Fall, Stand, Up, Duck }
+enum State { Idle, Run, Jump, Fall, Stand, Up, Duck, LedgeGrab }
 
 var current_state: State = State.Idle
 var previous_state: State = State.Idle
@@ -68,6 +73,8 @@ func _physics_process(delta: float):
 
 	# Movement per state
 	match current_state:
+		State.LedgeGrab:
+			player_ledge_grab(delta)
 		State.Run:
 			player_run(direction, delta)
 		State.Idle:
@@ -99,6 +106,10 @@ func _physics_process(delta: float):
 
 
 func process_state_transitions(direction: int, on_floor: bool):
+	if check_ledge_grab():
+		change_state(State.LedgeGrab)
+		return
+	
 	if jump_buffer_timer > 0 and coyote_timer > 0:
 		change_state(State.Jump)
 		is_jumping = true
@@ -111,6 +122,8 @@ func process_state_transitions(direction: int, on_floor: bool):
 	#	if !is_jumping and current_state != State.Fall:
 	#		change_state(State.Fall)
 	#	return
+	
+	
 
 	# Maintain look_up or duck states
 	if current_state == State.Up and Input.is_action_pressed("look_up"):
@@ -145,6 +158,9 @@ func input_movement() -> int:
 	return Input.get_axis("move_left", "move_right")
 
 func update_facing_input():
+	if current_state == State.LedgeGrab:
+	# Don't update facing direction while grabbing ledge
+		return
 	if Input.is_action_pressed("move_left"):
 		facing_left = true
 	elif Input.is_action_pressed("move_right"):
@@ -158,6 +174,8 @@ func flip_muzzle_markers(flip_left: bool):
 	muzzle.position.x = abs(muzzle.position.x) * direction
 	muzzle_up.position.x = abs(muzzle_up.position.x) * direction
 	muzzle_duck.position.x = abs(muzzle_duck.position.x) * direction
+	
+	muzzle_cling.position.x = abs(muzzle_cling.position.x) * direction
 
 func change_state(new_state: State):
 	if new_state == current_state:
@@ -211,6 +229,9 @@ func player_animations():
 				animated_sprite_2d.play("duck")
 			#State.Fall:
 			#	animated_sprite_2d.play("stand")  # Use stand animation for fall
+			State.LedgeGrab:
+				animated_sprite_2d.flip_h = !facing_left  # inverse of facing_left
+				animated_sprite_2d.play("cling")
 	else:
 		match current_state:
 			State.Idle:
@@ -227,8 +248,12 @@ func player_animations():
 				animated_sprite_2d.play("duck")
 			#State.Fall:
 			#	animated_sprite_2d.play("stand")  # Use stand animation for fall
+			State.LedgeGrab:
+				animated_sprite_2d.flip_h = !facing_left  # inverse of facing_left
+				animated_sprite_2d.play("cling")
 
 func shoot():
+	
 	var dir := Vector2.ZERO
 	
 	match current_state:
@@ -240,6 +265,9 @@ func shoot():
 			dir = Vector2(0, -1)
 		State.Duck:
 			active_muzzle = muzzle_duck
+			dir = Vector2(-1, 0) if facing_left else Vector2(1, 0)
+		State.LedgeGrab:
+			active_muzzle = muzzle_cling
 			dir = Vector2(-1, 0) if facing_left else Vector2(1, 0)
 		_:
 			active_muzzle = muzzle
@@ -253,3 +281,21 @@ func shoot():
 	#bullet_instance.direction = -1 if facing_left else 1
 
 	shoot_cooldown = shoot_cooldown_time
+	
+
+func check_ledge_grab():
+	print("check_ledge_grab: ", wall_check.is_colliding(), floor_check.is_colliding(), velocity.y)
+	if wall_check.is_colliding() and not floor_check.is_colliding() and velocity.y == 0:
+		return true
+	return false
+	
+	
+func player_ledge_grab(delta: float):
+	velocity = Vector2.ZERO  # Freeze while clinging
+
+	if Input.is_action_just_pressed("jump"):
+		# Jump away from ledge
+		velocity.y = -jump
+		velocity.x = jump_horizontal * (1 if not facing_left else -1)
+		is_jumping = true
+		change_state(State.Jump)

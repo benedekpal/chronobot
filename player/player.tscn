@@ -1,13 +1,18 @@
-[gd_scene load_steps=46 format=3 uid="uid://c0nd8th1oivk4"]
+[gd_scene load_steps=50 format=3 uid="uid://c0nd8th1oivk4"]
 
 [ext_resource type="Script" uid="uid://b246ojmue22r7" path="res://player/player.gd" id="1_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://db3fbodscmu36" path="res://player/player-idle.png" id="1_rkbax"]
 [ext_resource type="Texture2D" uid="uid://wlsj1il4flwd" path="res://player/player-run.png" id="2_g1dw6"]
+[ext_resource type="Texture2D" uid="uid://dj6ciqm1p2mh7" path="res://player/player-cling.png" id="2_hg6s5"]
 [ext_resource type="Texture2D" uid="uid://bcja2w1qgjfxy" path="res://player/player-duck.png" id="2_rgyib"]
 [ext_resource type="Texture2D" uid="uid://01tadh1nc6vs" path="res://player/player-jump.png" id="3_yw30f"]
 [ext_resource type="Texture2D" uid="uid://bcdsbi1ukbve3" path="res://player/player-shoot-up.png" id="4_boad6"]
 [ext_resource type="Texture2D" uid="uid://uqg83gfdt4i7" path="res://player/player-run-shoot.png" id="5_qjkh3"]
 [ext_resource type="Texture2D" uid="uid://piwy40nrftlj" path="res://player/player-stand.png" id="6_g6k8r"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_55jnj"]
+atlas = ExtResource("2_hg6s5")
+region = Rect2(0, 0, 80, 80)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1so5t"]
 atlas = ExtResource("2_rgyib")
@@ -153,6 +158,14 @@ region = Rect2(160, 0, 80, 80)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_55jnj")
+}],
+"loop": true,
+"name": &"cling",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_1so5t")
 }],
 "loop": true,
@@ -292,8 +305,14 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_c35mf"]
-height = 40.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hg6s5"]
+size = Vector2(20, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dx5ib"]
+size = Vector2(22, 0)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a2xo5"]
+size = Vector2(22, 20)
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
@@ -302,12 +321,13 @@ script = ExtResource("1_g1dw6")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -24)
 sprite_frames = SubResource("SpriteFrames_e7oew")
-animation = &"run"
+animation = &"cling"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -20)
-shape = SubResource("CapsuleShape2D_c35mf")
+shape = SubResource("RectangleShape2D_hg6s5")
 
 [node name="Muzzle" type="Marker2D" parent="."]
 position = Vector2(17, -27)
@@ -317,3 +337,19 @@ position = Vector2(4, -42)
 
 [node name="MuzzleDuck" type="Marker2D" parent="."]
 position = Vector2(17, -14)
+
+[node name="MuzzleCling" type="Marker2D" parent="."]
+position = Vector2(22, -25)
+
+[node name="LedgeGrab" type="CollisionShape2D" parent="."]
+position = Vector2(0, -33)
+shape = SubResource("RectangleShape2D_dx5ib")
+
+[node name="WallCheck" type="ShapeCast2D" parent="."]
+position = Vector2(0, -30)
+shape = SubResource("RectangleShape2D_a2xo5")
+target_position = Vector2(0, 13)
+
+[node name="FloorCheck" type="RayCast2D" parent="."]
+position = Vector2(0, -20)
+target_position = Vector2(0, 25)
