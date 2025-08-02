@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://7vqgksfnsn2y"]
+[gd_scene load_steps=6 format=3 uid="uid://7vqgksfnsn2y"]
 
 [ext_resource type="Texture2D" uid="uid://bhiiusksgkqgx" path="res://player/shot.png" id="1_1y6ct"]
+[ext_resource type="Script" uid="uid://i0sd2yqiiqod" path="res://player/bullet.gd" id="2_j40gx"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j40gx"]
 atlas = ExtResource("1_1y6ct")
@@ -28,3 +29,11 @@ animations = [{
 sprite_frames = SubResource("SpriteFrames_42du2")
 animation = &"shot"
 frame_progress = 0.0702888
+script = ExtResource("2_j40gx")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 5.0
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

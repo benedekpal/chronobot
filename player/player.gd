@@ -229,19 +229,27 @@ func player_animations():
 			#	animated_sprite_2d.play("stand")  # Use stand animation for fall
 
 func shoot():
+	var dir := Vector2.ZERO
+	
 	match current_state:
 		State.Jump:
 			active_muzzle = muzzle
+			dir = Vector2(-1, 0) if facing_left else Vector2(1, 0)
 		State.Up:
 			active_muzzle = muzzle_up
+			dir = Vector2(0, -1)
 		State.Duck:
 			active_muzzle = muzzle_duck
+			dir = Vector2(-1, 0) if facing_left else Vector2(1, 0)
 		_:
 			active_muzzle = muzzle
+			dir = Vector2(-1, 0) if facing_left else Vector2(1, 0)
 
 	var bullet_instance = bullet.instantiate()
+
 	get_parent().add_child(bullet_instance)
+	bullet_instance.dir = dir
 	bullet_instance.global_position = active_muzzle.global_position
 	#bullet_instance.direction = -1 if facing_left else 1
 
-	#shoot_cooldown = shoot_cooldown_time
+	shoot_cooldown = shoot_cooldown_time
