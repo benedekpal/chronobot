@@ -332,11 +332,15 @@ size = Vector2(22, 20)
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
 script = ExtResource("1_g1dw6")
+speed = null
+jump = null
+jump_horizontal = null
+shoot_cooldown_time = null
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -24)
 sprite_frames = SubResource("SpriteFrames_e7oew")
-animation = &"run_shoot"
+animation = &"cling"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -383,7 +387,3 @@ position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_8t03j")
 target_position = Vector2(0, -12)
 collide_with_areas = true
-
-[node name="WeaponCooldown" type="Timer" parent="."]
-wait_time = 0.2
-one_shot = true
