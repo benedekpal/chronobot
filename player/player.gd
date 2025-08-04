@@ -60,14 +60,15 @@ func _physics_process(delta: float):
 
 	update_facing_input()
 
-	# LEDGE GRAB HANDLING
+	# Disable ledgegrab collider unless it's needed
 	ledge_grab.disabled = current_state in [State.Run, State.Idle] or velocity.y < 0 or (current_state != State.LedgeGrab and top_check.is_colliding())
 
+	# Check for ledge grab in airborne states
 	if current_state in [State.Jump, State.Fall]:
 		if check_ledge_grab():
 			current_state = State.LedgeGrab
 
-	# Landing logic
+	# Check if landing, switch state as necessary
 	if on_floor and current_state != State.LedgeGrab:
 		if velocity.x != 0:
 			current_state = State.Run
@@ -78,20 +79,24 @@ func _physics_process(delta: float):
 		else:
 			current_state = State.Idle
 
-	# Airborne logic
+	# Check if falling
 	if !on_floor and current_state in [State.Idle, State.Run]:
 		current_state = State.Fall
-
+	
+	# In-air states movement
 	if current_state in [State.Jump, State.Fall]:
 		handle_jump_input()
 		apply_gravity(delta)
 		handle_air_acceleration(direction, delta)
 		apply_air_resistance(direction, delta)
-	elif current_state in [State.Idle, State.Run]:
+	
+	# Grounded state movement
+	if current_state in [State.Idle, State.Run]:
 		handle_jump_input()
 		handle_acceleration(direction, delta)
 		apply_friction(direction, delta)
 
+	# State-specific behavior
 	match current_state:
 		State.LedgeGrab:
 			if floor_check.is_colliding():
@@ -110,12 +115,19 @@ func _physics_process(delta: float):
 				velocity.y = 80
 			handle_jump_input()
 
+	#Apply movement
 	handle_shoot_input()
 	player_animations()
 	move_and_slide()
 
+	# Start coyote timer if just left ledge
 	if !is_on_floor() and on_floor:
 		coyote_timer.start()
+		
+	#print("State: ", State.keys()[current_state])
+	
+	return
+	
 
 func apply_gravity(delta: float) -> void:
 	if not is_on_floor() and velocity.y < 700:

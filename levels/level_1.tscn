@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cgxasmtena8p"]
+[gd_scene load_steps=4 format=3 uid="uid://cgxasmtena8p"]
 
 [ext_resource type="PackedScene" uid="uid://by7w03xgeb6bq" path="res://levels/base_level.tscn" id="1_vn7o3"]
 [ext_resource type="PackedScene" uid="uid://cu4r3jt338w3u" path="res://background/parallax_background.tscn" id="2_jirdo"]
+[ext_resource type="PackedScene" uid="uid://bqiklq1y4uqgn" path="res://enemies/enemy_crab.tscn" id="3_bt44k"]
 
 [node name="Level1" instance=ExtResource("1_vn7o3")]
 
@@ -20,3 +21,18 @@ limit_top = -288
 limit_right = 1440
 limit_bottom = 48
 editor_draw_limits = true
+
+[node name="Enemies" type="Node" parent="." index="3"]
+
+[node name="EnemyCrab" parent="." index="4" node_paths=PackedStringArray("patrol_points") instance=ExtResource("3_bt44k")]
+position = Vector2(1040, 0)
+patrol_points = NodePath("PatrolPoints")
+
+[node name="PatrolPoints" type="Node2D" parent="EnemyCrab" index="3"]
+position = Vector2(-1040, 0)
+
+[node name="Point1" type="Marker2D" parent="EnemyCrab/PatrolPoints" index="0"]
+position = Vector2(912, -8)
+
+[node name="Point2" type="Marker2D" parent="EnemyCrab/PatrolPoints" index="1"]
+position = Vector2(1136, -8)
