@@ -247,3 +247,8 @@ func handle_shoot_input():
 
 func check_ledge_grab():
 	return wall_check.is_colliding() and not floor_check.is_colliding() and velocity.y == 0
+
+
+func _on_hurtbox_body_entered(body: Node2D) -> void:
+	if body.is_in_group("Enemy"):
+		print("enemy entered")
