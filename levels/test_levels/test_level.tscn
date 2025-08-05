@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://by7w03xgeb6bq" path="res://levels/base_level.tscn" id="1_7dtao"]
 [ext_resource type="PackedScene" uid="uid://cu4r3jt338w3u" path="res://background/parallax_background.tscn" id="2_kpfnq"]
-[ext_resource type="PackedScene" uid="uid://bqiklq1y4uqgn" path="res://enemies/enemy_crab.tscn" id="2_rwr5k"]
+[ext_resource type="PackedScene" uid="uid://cnlwoqur7vcdu" path="res://enemies/dino/enemy_dino.tscn" id="3_kpfnq"]
 
 [node name="TestLevel" instance=ExtResource("1_7dtao")]
 
@@ -14,29 +14,5 @@ layer_0/tile_data = PackedInt32Array(-327680, 983040, 8, -262144, 983040, 8, -19
 [node name="Player" parent="." index="2"]
 position = Vector2(54, -136)
 
-[node name="EnemyCrab" parent="." index="3" node_paths=PackedStringArray("patrol_points") instance=ExtResource("2_rwr5k")]
-position = Vector2(295, -145)
-patrol_points = NodePath("PatrolPoints")
-
-[node name="PatrolPoints" type="Node2D" parent="EnemyCrab" index="2"]
-
-[node name="Point1" type="Marker2D" parent="EnemyCrab/PatrolPoints" index="0"]
-position = Vector2(-119, 62)
-
-[node name="Point2" type="Marker2D" parent="EnemyCrab/PatrolPoints" index="1"]
-position = Vector2(34, 65)
-
-[node name="EnemyCrab2" parent="." index="4" node_paths=PackedStringArray("patrol_points") instance=ExtResource("2_rwr5k")]
-position = Vector2(735, -106)
-patrol_points = NodePath("PatrolPoints")
-speed = 50
-wait_time = 2
-
-[node name="PatrolPoints" type="Node2D" parent="EnemyCrab2" index="3"]
-position = Vector2(-757, 131)
-
-[node name="Point1" type="Marker2D" parent="EnemyCrab2/PatrolPoints" index="0"]
-position = Vector2(604, -108)
-
-[node name="Point2" type="Marker2D" parent="EnemyCrab2/PatrolPoints" index="1"]
-position = Vector2(825, -108)
+[node name="EnemyDino" parent="." index="3" instance=ExtResource("3_kpfnq")]
+position = Vector2(258, -133)

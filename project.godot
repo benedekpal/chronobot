@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Chronobot"
-run/main_scene="uid://by7w03xgeb6bq"
+run/main_scene="uid://bikrcpiba4cdc"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -30,6 +30,10 @@ window/stretch/mode="viewport"
 [dotnet]
 
 project/assembly_name="Chronobot"
+
+[global_group]
+
+Player=""
 
 [input]
 

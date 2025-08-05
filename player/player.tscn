@@ -329,14 +329,14 @@ size = Vector2(22, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8t03j"]
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" groups=["Player"]]
 collision_layer = 2
 script = ExtResource("1_g1dw6")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -24)
 sprite_frames = SubResource("SpriteFrames_e7oew")
-animation = &"run_shoot"
+animation = &"stand"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -344,18 +344,23 @@ position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_hg6s5")
 
 [node name="Muzzle" type="Marker2D" parent="."]
+visible = false
 position = Vector2(17, -27)
 
 [node name="MuzzleUp" type="Marker2D" parent="."]
+visible = false
 position = Vector2(4, -42)
 
 [node name="MuzzleDuck" type="Marker2D" parent="."]
+visible = false
 position = Vector2(17, -14)
 
 [node name="MuzzleCling" type="Marker2D" parent="."]
+visible = false
 position = Vector2(22, -25)
 
 [node name="LedgeGrab" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -33)
 shape = SubResource("RectangleShape2D_dx5ib")
 
@@ -366,6 +371,7 @@ shape = SubResource("RectangleShape2D_a2xo5")
 target_position = Vector2(0, 13)
 
 [node name="FloorCheck" type="RayCast2D" parent="."]
+visible = false
 position = Vector2(0, -20)
 target_position = Vector2(0, 32)
 
@@ -378,6 +384,7 @@ wait_time = 0.15
 one_shot = true
 
 [node name="TopCheck" type="ShapeCast2D" parent="."]
+visible = false
 position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_8t03j")
 target_position = Vector2(0, -12)
