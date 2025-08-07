@@ -7,9 +7,12 @@ var enemy_death_effect = preload("res://enemies/enemy_death_effect.tscn")
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var timer: Timer = $Timer
 
-const GRAVITY = 1000
+@export var healt_amount : int = 3
 @export var speed : int = 25
 @export var wait_time : int = 3
+@export var damage_amount : int = 1
+
+const GRAVITY = 1000
 
 enum State { Idle, Walk, Falling }
 
@@ -21,8 +24,6 @@ var point_positions : Array[Vector2]
 var current_point : Vector2
 var current_point_position : int #set to 0 by default
 var can_walk : bool
-
-@export var healt_amount : int = 3
 
 
 func _ready():

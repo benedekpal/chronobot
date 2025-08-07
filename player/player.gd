@@ -252,3 +252,4 @@ func check_ledge_grab():
 func _on_hurtbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("Enemy"):
 		print("enemy entered")
+		HealthManager.decrease_health(body.damage_amount)

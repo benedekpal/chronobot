@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bikrcpiba4cdc"]
+[gd_scene load_steps=6 format=3 uid="uid://bikrcpiba4cdc"]
 
 [ext_resource type="PackedScene" uid="uid://by7w03xgeb6bq" path="res://levels/base_level.tscn" id="1_7dtao"]
 [ext_resource type="PackedScene" uid="uid://cu4r3jt338w3u" path="res://background/parallax_background.tscn" id="2_kpfnq"]
 [ext_resource type="PackedScene" uid="uid://cnlwoqur7vcdu" path="res://enemies/dino/enemy_dino.tscn" id="3_kpfnq"]
 [ext_resource type="PackedScene" uid="uid://bqiklq1y4uqgn" path="res://enemies/crab/enemy_crab.tscn" id="4_hvxhd"]
+[ext_resource type="PackedScene" uid="uid://cdfa6lhlexujv" path="res://ui/game_screen.tscn" id="5_mo4vu"]
 
 [node name="TestLevel" instance=ExtResource("1_7dtao")]
 
@@ -30,3 +31,5 @@ position = Vector2(913, 14)
 
 [node name="Point2" type="Marker2D" parent="EnemyCrab/PatrolPoints" index="1"]
 position = Vector2(1130, 14)
+
+[node name="GameScreen" parent="." index="5" instance=ExtResource("5_mo4vu")]
