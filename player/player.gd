@@ -15,6 +15,8 @@ extends CharacterBody2D
 @onready var jump_buffer: Timer = $JumpBuffer
 @onready var weapon_cooldown: Timer = $WeaponCooldown
 
+@onready var hit_animation_player: AnimationPlayer = $HitAnimationPlayer
+
 const GRAVITY = 1000
 
 @export var speed: int = 300
@@ -252,4 +254,5 @@ func check_ledge_grab():
 func _on_hurtbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("Enemy"):
 		print("enemy entered")
+		hit_animation_player.play("hit")
 		HealthManager.decrease_health(body.damage_amount)

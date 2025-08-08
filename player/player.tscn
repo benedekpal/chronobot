@@ -1,7 +1,8 @@
-[gd_scene load_steps=54 format=3 uid="uid://c0nd8th1oivk4"]
+[gd_scene load_steps=61 format=3 uid="uid://c0nd8th1oivk4"]
 
 [ext_resource type="Script" uid="uid://b246ojmue22r7" path="res://player/player.gd" id="1_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://db3fbodscmu36" path="res://player/player-idle.png" id="1_rkbax"]
+[ext_resource type="Shader" uid="uid://bqnl5u8xaw8nq" path="res://player/player_hit_flash_shader.tres" id="2_2ieo8"]
 [ext_resource type="Texture2D" uid="uid://wlsj1il4flwd" path="res://player/player-run.png" id="2_g1dw6"]
 [ext_resource type="Texture2D" uid="uid://dj6ciqm1p2mh7" path="res://player/player-cling.png" id="2_hg6s5"]
 [ext_resource type="Texture2D" uid="uid://bcja2w1qgjfxy" path="res://player/player-duck.png" id="2_rgyib"]
@@ -10,6 +11,11 @@
 [ext_resource type="Texture2D" uid="uid://bcdsbi1ukbve3" path="res://player/player-shoot-up.png" id="4_boad6"]
 [ext_resource type="Texture2D" uid="uid://uqg83gfdt4i7" path="res://player/player-run-shoot.png" id="5_qjkh3"]
 [ext_resource type="Texture2D" uid="uid://piwy40nrftlj" path="res://player/player-stand.png" id="6_g6k8r"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ebec5"]
+shader = ExtResource("2_2ieo8")
+shader_parameter/enabled = false
+shader_parameter/hit_colour = Color(0.67895, 0.225619, 0.301153, 1)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_55jnj"]
 atlas = ExtResource("2_hg6s5")
@@ -22,6 +28,14 @@ region = Rect2(0, 0, 80, 80)
 [sub_resource type="AtlasTexture" id="AtlasTexture_dx5ib"]
 atlas = ExtResource("4_8t03j")
 region = Rect2(0, 0, 80, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a2xo5"]
+atlas = ExtResource("4_8t03j")
+region = Rect2(0, 0, 80, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_art4l"]
+atlas = ExtResource("4_8t03j")
+region = Rect2(80, 0, 80, 80)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yw30f"]
 atlas = ExtResource("1_rkbax")
@@ -187,6 +201,17 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_a2xo5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_art4l")
+}],
+"loop": true,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_yw30f")
 }, {
 "duration": 1.0,
@@ -333,17 +358,56 @@ size = Vector2(22, 20)
 radius = 11.0
 height = 36.0
 
+[sub_resource type="Animation" id="Animation_2ieo8"]
+resource_name = "hit"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:material:shader_parameter/enabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="Animation" id="Animation_ebec5"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:material:shader_parameter/enabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_yllr7"]
+_data = {
+&"RESET": SubResource("Animation_ebec5"),
+&"hit": SubResource("Animation_2ieo8")
+}
+
 [node name="Player" type="CharacterBody2D" groups=["Player"]]
 collision_layer = 2
 script = ExtResource("1_g1dw6")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_ebec5")
 position = Vector2(0, -24)
 sprite_frames = SubResource("SpriteFrames_e7oew")
-animation = &"stand"
+animation = &"idle"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 position = Vector2(0, -20)
 shape = SubResource("RectangleShape2D_hg6s5")
 
@@ -399,6 +463,7 @@ wait_time = 0.2
 one_shot = true
 
 [node name="Hurtbox" type="Area2D" parent="."]
+visible = false
 collision_layer = 2
 collision_mask = 4
 
@@ -406,5 +471,10 @@ collision_mask = 4
 position = Vector2(0, -19)
 shape = SubResource("CapsuleShape2D_8t03j")
 debug_color = Color(0.85176, 0.281168, 0.618874, 0.42)
+
+[node name="HitAnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_yllr7")
+}
 
 [connection signal="body_entered" from="Hurtbox" to="." method="_on_hurtbox_body_entered"]
