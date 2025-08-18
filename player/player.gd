@@ -33,6 +33,7 @@ var current_state: State = State.Idle
 var previous_state: State = State.Idle
 
 var bullet = preload("res://player/bullet.tscn")
+var player_death_effect = preload("res://player/player_death_effect/player_death_effect.tscn")
 var active_muzzle: Marker2D
 var facing_left = false
 
@@ -251,8 +252,18 @@ func check_ledge_grab():
 	return wall_check.is_colliding() and not floor_check.is_colliding() and velocity.y == 0
 
 
+func player_death():
+	var player_death_effect_instance = player_death_effect.instantiate() as Node2D
+	player_death_effect_instance.global_position = global_position
+	get_parent().add_child(player_death_effect_instance)
+	queue_free()
+
 func _on_hurtbox_body_entered(body: Node2D) -> void:
 	if body.is_in_group("Enemy"):
 		print("enemy entered")
 		hit_animation_player.play("hit")
 		HealthManager.decrease_health(body.damage_amount)
+	if HealthManager.current_health == 0:
+		print("calling death animation")
+		player_death()
+		
